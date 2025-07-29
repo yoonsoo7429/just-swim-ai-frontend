@@ -3,79 +3,38 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_URLS } from "@/config/api";
 import styles from "./page.module.scss";
-
-interface UserStats {
-  totalRecords: number;
-  totalDistance: number;
-  totalTime: number;
-  averageDistance: number;
-  averageTime: number;
-  personalBests: {
-    distance: number;
-    duration: number;
-    speed: number;
-  } | null;
-  weeklyStats: {
-    totalDistance: number;
-    totalTime: number;
-    sessionCount: number;
-    averageDistance: number;
-    averageTime: number;
-  } | null;
-}
-
-interface StyleStats {
-  [key: string]: {
-    count: number;
-    totalDistance: number;
-    totalTime: number;
-    averageDistance: number;
-    averageTime: number;
-    bestDistance: number;
-    bestTime: number;
-  };
-}
-
-interface TrainingAnalysis {
-  isNewRecord: boolean;
-  recordType: string;
-  improvement: {
-    distanceImprovement: number;
-    timeImprovement: number;
-    speedImprovement: number;
-    isFirstRecord: boolean;
-  } | null;
-  weeklyStats: any;
-  personalBests: any;
-}
-
-interface Achievement {
-  id: number;
-  type: string;
-  level: string;
-  title: string;
-  description: string;
-  icon: string;
-  progress: number;
-  target: number;
-  isUnlocked: boolean;
-  unlockedAt: string | null;
-}
-
-interface AchievementStats {
-  totalAchievements: number;
-  unlockedAchievements: number;
-  completionRate: number;
-  levelStats: {
-    bronze: number;
-    silver: number;
-    gold: number;
-    platinum: number;
-  };
-}
+import { useAuth } from "../hooks/useAuth";
+import { useForm } from "../hooks/useForm";
+import { recordsApi, recommendApi, achievementsApi } from "../utils/api";
+import {
+  UserStats,
+  StyleStats,
+  Achievement,
+  AchievementStats,
+  TrainingAnalysis,
+  CreateRecordRequest,
+} from "../types";
+import {
+  formatTime,
+  formatDistance,
+  formatSpeed,
+  getStyleName,
+  getGoalName,
+  getLevelColor,
+  getLevelName,
+} from "../utils/formatters";
 
 export default function Home() {
-  const [form, setForm] = useState({
+  const { isLoggedIn, handleLogout } = useAuth();
+  const {
+    form,
+    formState,
+    handleChange,
+    setLoading,
+    setError,
+    setSuccess,
+    resetForm,
+  } = useForm<CreateRecordRequest>({
     date: "",
     distance: 0,
     style: "freestyle",
@@ -83,11 +42,8 @@ export default function Home() {
     frequency_per_week: 1,
     goal: "endurance",
   });
-  const [loading, setLoading] = useState(false);
+
   const [recommend, setRecommend] = useState<any>(null);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showRecordForm, setShowRecordForm] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
@@ -103,66 +59,22 @@ export default function Home() {
   const [loadingStats, setLoadingStats] = useState(false);
   const router = useRouter();
 
-  // 쿠키에서 토큰 읽기
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(";").shift();
-    return null;
-  };
-
-  // 로그아웃 함수
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    document.cookie =
-      "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    setIsLoggedIn(false);
-    router.push("/signin");
-  };
-
   // 사용자 통계 가져오기
   const fetchUserStats = async () => {
-    const token =
-      localStorage.getItem("access_token") || getCookie("access_token");
-    if (!token) return;
-
     try {
       setLoadingStats(true);
-      const [statsRes, styleStatsRes, achievementsRes, achievementStatsRes] =
+      const [statsData, styleData, achievementsData, achievementStatsData] =
         await Promise.all([
-          fetch(API_URLS.RECORDS_STATS, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(API_URLS.RECORDS_STYLE_STATS, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(API_URLS.ACHIEVEMENTS, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(API_URLS.ACHIEVEMENTS_STATS, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          recordsApi.getStats(),
+          recordsApi.getStyleStats(),
+          achievementsApi.getAll(),
+          achievementsApi.getStats(),
         ]);
 
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setUserStats(statsData);
-      }
-
-      if (styleStatsRes.ok) {
-        const styleData = await styleStatsRes.json();
-        setStyleStats(styleData);
-      }
-
-      if (achievementsRes.ok) {
-        const achievementsData = await achievementsRes.json();
-        setAchievements(achievementsData);
-      }
-
-      if (achievementStatsRes.ok) {
-        const achievementStatsData = await achievementStatsRes.json();
-        setAchievementStats(achievementStatsData);
-      }
+      setUserStats(statsData);
+      setStyleStats(styleData);
+      setAchievements(achievementsData);
+      setAchievementStats(achievementStatsData);
     } catch (error) {
       console.error("통계 로딩 실패:", error);
     } finally {
@@ -171,25 +83,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const token =
-      localStorage.getItem("access_token") || getCookie("access_token");
-    setIsLoggedIn(!!token);
-
-    if (token) {
+    if (isLoggedIn) {
       fetchUserStats();
     }
-  }, []);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target;
-    if (type === "number") {
-      setForm({ ...form, [name]: Number(value) });
-    } else {
-      setForm({ ...form, [name]: value });
-    }
-  };
+  }, [isLoggedIn]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,26 +98,8 @@ export default function Home() {
     setNewAchievements([]);
 
     try {
-      const token =
-        localStorage.getItem("access_token") || getCookie("access_token");
-      if (!token) throw new Error("로그인이 필요합니다.");
-
       // 기록 저장
-      const recordRes = await fetch(API_URLS.RECORDS, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(form),
-      });
-
-      if (!recordRes.ok) {
-        const data = await recordRes.json();
-        throw new Error(data.message || "기록 저장 실패");
-      }
-
-      const recordData = await recordRes.json();
+      const recordData = await recordsApi.create(form);
       setSuccess("기록이 저장되었습니다!");
       setShowRecordForm(false);
 
@@ -240,77 +119,13 @@ export default function Home() {
       await fetchUserStats();
 
       // 추천 요청
-      const recommendRes = await fetch(API_URLS.RECOMMEND, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(form),
-      });
-
-      if (recommendRes.ok) {
-        const recommendData = await recommendRes.json();
-        setRecommend(recommendData);
-      }
+      const recommendData = await recommendApi.create(form);
+      setRecommend(recommendData);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}시간 ${mins}분` : `${mins}분`;
-  };
-
-  const formatDistance = (meters: number) => {
-    return meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
-  };
-
-  const formatSpeed = (speed: number) => {
-    return `${speed.toFixed(2)} m/min`;
-  };
-
-  const getStyleName = (style: string) => {
-    const styleNames = {
-      freestyle: "자유형",
-      backstroke: "배영",
-      breaststroke: "평영",
-      butterfly: "접영",
-    };
-    return styleNames[style as keyof typeof styleNames] || style;
-  };
-
-  const getGoalName = (goal: string) => {
-    const goalNames = {
-      endurance: "지구력",
-      speed: "스피드",
-      technique: "테크닉",
-    };
-    return goalNames[goal as keyof typeof goalNames] || goal;
-  };
-
-  const getLevelColor = (level: string) => {
-    const colors = {
-      bronze: "#cd7f32",
-      silver: "#c0c0c0",
-      gold: "#ffd700",
-      platinum: "#e5e4e2",
-    };
-    return colors[level as keyof typeof colors] || "#666";
-  };
-
-  const getLevelName = (level: string) => {
-    const levelNames = {
-      bronze: "브론즈",
-      silver: "실버",
-      gold: "골드",
-      platinum: "플래티넘",
-    };
-    return levelNames[level as keyof typeof levelNames] || level;
   };
 
   return (
@@ -393,7 +208,7 @@ export default function Home() {
                     <div className={styles.statContent}>
                       <h3 className={styles.statTitle}>이번 주 거리</h3>
                       <p className={styles.statValue}>
-                        {userStats?.weeklyStats
+                        {userStats?.weeklyStats?.totalDistance
                           ? formatDistance(userStats.weeklyStats.totalDistance)
                           : "0m"}
                       </p>
@@ -408,13 +223,13 @@ export default function Home() {
                     <div className={styles.statContent}>
                       <h3 className={styles.statTitle}>이번 주 시간</h3>
                       <p className={styles.statValue}>
-                        {userStats?.weeklyStats
+                        {userStats?.weeklyStats?.totalTime
                           ? formatTime(userStats.weeklyStats.totalTime)
                           : "0분"}
                       </p>
                       <p className={styles.statSubtitle}>
                         평균{" "}
-                        {userStats?.weeklyStats
+                        {userStats?.weeklyStats?.averageTime
                           ? formatTime(userStats.weeklyStats.averageTime)
                           : "0분"}
                       </p>
@@ -426,7 +241,7 @@ export default function Home() {
                     <div className={styles.statContent}>
                       <h3 className={styles.statTitle}>총 거리</h3>
                       <p className={styles.statValue}>
-                        {userStats
+                        {userStats?.totalDistance
                           ? formatDistance(userStats.totalDistance)
                           : "0m"}
                       </p>
@@ -441,13 +256,13 @@ export default function Home() {
                     <div className={styles.statContent}>
                       <h3 className={styles.statTitle}>개인 최고</h3>
                       <p className={styles.statValue}>
-                        {userStats?.personalBests
+                        {userStats?.personalBests?.distance
                           ? formatDistance(userStats.personalBests.distance)
                           : "0m"}
                       </p>
                       <p className={styles.statSubtitle}>
                         최고 시간:{" "}
-                        {userStats?.personalBests
+                        {userStats?.personalBests?.duration
                           ? formatTime(userStats.personalBests.duration)
                           : "0분"}
                       </p>
@@ -467,11 +282,13 @@ export default function Home() {
                             달성률
                           </h4>
                           <p className={styles.achievementStatValue}>
-                            {achievementStats.completionRate.toFixed(1)}%
+                            {achievementStats?.completionRate?.toFixed(1) ||
+                              "0.0"}
+                            %
                           </p>
                           <p className={styles.achievementStatSubtitle}>
-                            {achievementStats.unlockedAchievements}/
-                            {achievementStats.totalAchievements}
+                            {achievementStats?.unlockedAchievements || 0}/
+                            {achievementStats?.totalAchievements || 0}
                           </p>
                         </div>
                       </div>
@@ -482,7 +299,7 @@ export default function Home() {
                             브론즈
                           </h4>
                           <p className={styles.achievementStatValue}>
-                            {achievementStats.levelStats.bronze}
+                            {achievementStats?.levelStats?.bronze || 0}
                           </p>
                         </div>
                       </div>
@@ -491,7 +308,7 @@ export default function Home() {
                         <div className={styles.achievementStatContent}>
                           <h4 className={styles.achievementStatTitle}>실버</h4>
                           <p className={styles.achievementStatValue}>
-                            {achievementStats.levelStats.silver}
+                            {achievementStats?.levelStats?.silver || 0}
                           </p>
                         </div>
                       </div>
@@ -500,7 +317,7 @@ export default function Home() {
                         <div className={styles.achievementStatContent}>
                           <h4 className={styles.achievementStatTitle}>골드</h4>
                           <p className={styles.achievementStatValue}>
-                            {achievementStats.levelStats.gold}
+                            {achievementStats?.levelStats?.gold || 0}
                           </p>
                         </div>
                       </div>
@@ -683,18 +500,22 @@ export default function Home() {
                       </button>
                       <button
                         type="submit"
-                        disabled={loading}
+                        disabled={formState.loading}
                         className={styles.submitButton}
                       >
-                        {loading ? "저장 중..." : "기록 저장"}
+                        {formState.loading ? "저장 중..." : "기록 저장"}
                       </button>
                     </div>
                   </form>
 
-                  {success && (
-                    <div className={styles.successMessage}>{success}</div>
+                  {formState.success && (
+                    <div className={styles.successMessage}>
+                      {formState.success}
+                    </div>
                   )}
-                  {error && <div className={styles.errorMessage}>{error}</div>}
+                  {formState.error && (
+                    <div className={styles.errorMessage}>{formState.error}</div>
+                  )}
                 </div>
               </div>
             )}
