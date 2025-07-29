@@ -16,7 +16,7 @@ import {
 } from "../../utils/formatters";
 
 export default function GoalsPage() {
-  const { isLoggedIn, checkAuth } = useAuth();
+  const { isSignedIn, checkAuth } = useAuth();
   const {
     form,
     formState,
@@ -46,7 +46,7 @@ export default function GoalsPage() {
     if (!checkAuth()) return;
     fetchGoals();
     fetchGoalStats();
-  }, [isLoggedIn]);
+  }, [isSignedIn]);
 
   const fetchGoals = async () => {
     try {

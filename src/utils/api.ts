@@ -14,7 +14,7 @@ export const getToken = (): string | null => {
 };
 
 // 로그아웃 처리
-export const logout = (): void => {
+export const signout = (): void => {
   localStorage.removeItem("access_token");
   document.cookie =
     "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";

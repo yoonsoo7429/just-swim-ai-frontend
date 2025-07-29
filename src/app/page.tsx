@@ -24,8 +24,10 @@ import {
   getLevelName,
 } from "../utils/formatters";
 
+type TabType = "summary" | "stats" | "actions";
+
 export default function Home() {
-  const { isLoggedIn, handleLogout } = useAuth();
+  const { isSignedIn, handleSignOut } = useAuth();
   const {
     form,
     formState,
@@ -43,6 +45,7 @@ export default function Home() {
     goal: "endurance",
   });
 
+  const [activeTab, setActiveTab] = useState<TabType>("summary");
   const [recommend, setRecommend] = useState<any>(null);
   const [showRecordForm, setShowRecordForm] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -83,10 +86,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isSignedIn) {
       fetchUserStats();
     }
-  }, [isLoggedIn]);
+  }, [isSignedIn]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,13 +131,278 @@ export default function Home() {
     }
   };
 
+  // 요약 탭 컴포넌트
+  const SummaryTab = () => (
+    <div className={styles.tabContent}>
+      <div className={styles.summaryHeader}>
+        <h3 className={styles.summaryTitle}>이번 주 요약</h3>
+        <button
+          onClick={() => setShowRecordForm(true)}
+          className={styles.quickAddButton}
+        >
+          + 기록 추가
+        </button>
+      </div>
+
+      <div className={styles.summaryStats}>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryIcon}>🏊‍♂️</div>
+          <div className={styles.summaryContent}>
+            <h4>이번 주 거리</h4>
+            <p className={styles.summaryValue}>
+              {userStats?.weeklyStats?.totalDistance
+                ? formatDistance(userStats.weeklyStats.totalDistance)
+                : "0m"}
+            </p>
+            <p className={styles.summarySubtitle}>
+              {userStats?.weeklyStats?.sessionCount || 0}회 훈련
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryIcon}>⏱️</div>
+          <div className={styles.summaryContent}>
+            <h4>이번 주 시간</h4>
+            <p className={styles.summaryValue}>
+              {userStats?.weeklyStats?.totalTime
+                ? formatTime(userStats.weeklyStats.totalTime)
+                : "0분"}
+            </p>
+            <p className={styles.summarySubtitle}>
+              평균{" "}
+              {userStats?.weeklyStats?.averageTime
+                ? formatTime(userStats.weeklyStats.averageTime)
+                : "0분"}
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryIcon}>🎯</div>
+          <div className={styles.summaryContent}>
+            <h4>개인 최고</h4>
+            <p className={styles.summaryValue}>
+              {userStats?.personalBests?.distance
+                ? formatDistance(userStats.personalBests.distance)
+                : "0m"}
+            </p>
+            <p className={styles.summarySubtitle}>
+              최고 시간:{" "}
+              {userStats?.personalBests?.duration
+                ? formatTime(userStats.personalBests.duration)
+                : "0분"}
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryIcon}>📊</div>
+          <div className={styles.summaryContent}>
+            <h4>총 거리</h4>
+            <p className={styles.summaryValue}>
+              {userStats?.totalDistance
+                ? formatDistance(userStats.totalDistance)
+                : "0m"}
+            </p>
+            <p className={styles.summarySubtitle}>
+              {userStats?.totalRecords || 0}회 기록
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {recommend && (
+        <div className={styles.quickRecommendation}>
+          <h3 className={styles.quickRecommendationTitle}>오늘의 추천</h3>
+          <div className={styles.quickRecommendationContent}>
+            <div className={styles.quickRecommendationItem}>
+              <span className={styles.quickRecommendationLabel}>
+                수영 훈련:
+              </span>
+              <span className={styles.quickRecommendationText}>
+                {recommend.swim_training}
+              </span>
+            </div>
+            <div className={styles.quickRecommendationItem}>
+              <span className={styles.quickRecommendationLabel}>
+                지상 운동:
+              </span>
+              <span className={styles.quickRecommendationText}>
+                {recommend.dryland_training}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // 상세 통계 탭 컴포넌트
+  const StatsTab = () => (
+    <div className={styles.tabContent}>
+      {/* 성취 통계 */}
+      {achievementStats && (
+        <div className={styles.statsSection}>
+          <h3 className={styles.sectionTitle}>성취 현황</h3>
+          <div className={styles.achievementStatsGrid}>
+            <div className={styles.achievementStatCard}>
+              <div className={styles.achievementStatIcon}>🏆</div>
+              <div className={styles.achievementStatContent}>
+                <h4 className={styles.achievementStatTitle}>달성률</h4>
+                <p className={styles.achievementStatValue}>
+                  {achievementStats?.completionRate?.toFixed(1) || "0.0"}%
+                </p>
+                <p className={styles.achievementStatSubtitle}>
+                  {achievementStats?.unlockedAchievements || 0}/
+                  {achievementStats?.totalAchievements || 0}
+                </p>
+              </div>
+            </div>
+            <div className={styles.achievementStatCard}>
+              <div className={styles.achievementStatIcon}>🥉</div>
+              <div className={styles.achievementStatContent}>
+                <h4 className={styles.achievementStatTitle}>브론즈</h4>
+                <p className={styles.achievementStatValue}>
+                  {achievementStats?.levelStats?.bronze || 0}
+                </p>
+              </div>
+            </div>
+            <div className={styles.achievementStatCard}>
+              <div className={styles.achievementStatIcon}>🥈</div>
+              <div className={styles.achievementStatContent}>
+                <h4 className={styles.achievementStatTitle}>실버</h4>
+                <p className={styles.achievementStatValue}>
+                  {achievementStats?.levelStats?.silver || 0}
+                </p>
+              </div>
+            </div>
+            <div className={styles.achievementStatCard}>
+              <div className={styles.achievementStatIcon}>🥇</div>
+              <div className={styles.achievementStatContent}>
+                <h4 className={styles.achievementStatTitle}>골드</h4>
+                <p className={styles.achievementStatValue}>
+                  {achievementStats?.levelStats?.gold || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 영법별 통계 */}
+      {styleStats && (
+        <div className={styles.statsSection}>
+          <h3 className={styles.sectionTitle}>영법별 통계</h3>
+          <div className={styles.styleStatsGrid}>
+            {Object.entries(styleStats).map(([style, stats]) => (
+              <div key={style} className={styles.styleStatCard}>
+                <h4 className={styles.styleName}>{getStyleName(style)}</h4>
+                <div className={styles.styleStatContent}>
+                  <p className={styles.styleStatValue}>{stats.count}회</p>
+                  <p className={styles.styleStatSubtitle}>
+                    총 {formatDistance(stats.totalDistance)} /{" "}
+                    {formatTime(stats.totalTime)}
+                  </p>
+                  <p className={styles.styleStatBest}>
+                    최고: {formatDistance(stats.bestDistance)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // 액션 탭 컴포넌트
+  const ActionsTab = () => (
+    <div className={styles.tabContent}>
+      <div className={styles.actionsHeader}>
+        <h3 className={styles.actionsTitle}>기록 관리</h3>
+        <p className={styles.actionsSubtitle}>
+          새로운 기록을 입력하고 맞춤형 추천을 받아보세요
+        </p>
+      </div>
+
+      <div className={styles.actionsGrid}>
+        <div className={styles.actionCard}>
+          <h4 className={styles.actionCardTitle}>새로운 기록 추가</h4>
+          <p className={styles.actionCardDescription}>
+            오늘의 수영 기록을 입력하고 맞춤형 추천을 받아보세요
+          </p>
+          <button
+            onClick={() => setShowRecordForm(true)}
+            className={styles.actionButton}
+          >
+            기록 입력하기
+          </button>
+        </div>
+
+        <div className={styles.actionCard}>
+          <h4 className={styles.actionCardTitle}>성취 확인</h4>
+          <p className={styles.actionCardDescription}>
+            달성한 성취와 진행 상황을 확인해보세요
+          </p>
+          <button
+            onClick={() => setShowAchievements(true)}
+            className={styles.actionButton}
+          >
+            성취 보기
+          </button>
+        </div>
+
+        <div className={styles.actionCard}>
+          <h4 className={styles.actionCardTitle}>목표 설정</h4>
+          <p className={styles.actionCardDescription}>
+            새로운 목표를 설정하고 달성해보세요
+          </p>
+          <a href="/goals" className={styles.actionButton}>
+            목표 설정하기
+          </a>
+        </div>
+
+        <div className={styles.actionCard}>
+          <h4 className={styles.actionCardTitle}>차트 보기</h4>
+          <p className={styles.actionCardDescription}>
+            수영 기록을 차트로 분석해보세요
+          </p>
+          <a href="/charts" className={styles.actionButton}>
+            차트 보기
+          </a>
+        </div>
+      </div>
+
+      {recommend && (
+        <div className={styles.recommendationCard}>
+          <h3 className={styles.recommendationTitle}>오늘의 추천</h3>
+          <div className={styles.recommendationContent}>
+            <div className={styles.recommendationItem}>
+              <span className={styles.recommendationLabel}>수영 훈련:</span>
+              <span className={styles.recommendationText}>
+                {recommend.swim_training}
+              </span>
+            </div>
+            <div className={styles.recommendationItem}>
+              <span className={styles.recommendationLabel}>지상 운동:</span>
+              <span className={styles.recommendationText}>
+                {recommend.dryland_training}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className={styles.container}>
       <nav className={styles.navigation}>
         <div className={styles.navContent}>
           <h1 className={styles.logo}>Just Swim AI</h1>
           <div className={styles.navLinks}>
-            {isLoggedIn ? (
+            {isSignedIn ? (
               <>
                 <button
                   onClick={() => setShowAchievements(true)}
@@ -148,7 +416,7 @@ export default function Home() {
                 <a href="/charts" className={styles.navLink}>
                   차트 📊
                 </a>
-                <button onClick={handleLogout} className={styles.navLink}>
+                <button onClick={handleSignOut} className={styles.navLink}>
                   Sign Out
                 </button>
               </>
@@ -167,7 +435,7 @@ export default function Home() {
       </nav>
 
       <div className={styles.mainContent}>
-        {!isLoggedIn ? (
+        {!isSignedIn ? (
           <div className={styles.formWrapper}>
             <h2 className={styles.title}>
               Just Swim AI에 오신 것을 환영합니다!
@@ -190,7 +458,7 @@ export default function Home() {
             <div className={styles.dashboardHeader}>
               <h2 className={styles.dashboardTitle}>수영 대시보드</h2>
               <p className={styles.dashboardSubtitle}>
-                이번 주 수영 기록을 확인하고 새로운 기록을 추가해보세요
+                수영 기록을 관리하고 맞춤형 추천을 받아보세요
               </p>
             </div>
 
@@ -201,199 +469,38 @@ export default function Home() {
               </div>
             ) : (
               <>
-                {/* 통계 카드들 */}
-                <div className={styles.statsGrid}>
-                  <div className={styles.statCard}>
-                    <div className={styles.statIcon}>🏊‍♂️</div>
-                    <div className={styles.statContent}>
-                      <h3 className={styles.statTitle}>이번 주 거리</h3>
-                      <p className={styles.statValue}>
-                        {userStats?.weeklyStats?.totalDistance
-                          ? formatDistance(userStats.weeklyStats.totalDistance)
-                          : "0m"}
-                      </p>
-                      <p className={styles.statSubtitle}>
-                        {userStats?.weeklyStats?.sessionCount || 0}회 훈련
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={styles.statCard}>
-                    <div className={styles.statIcon}>⏱️</div>
-                    <div className={styles.statContent}>
-                      <h3 className={styles.statTitle}>이번 주 시간</h3>
-                      <p className={styles.statValue}>
-                        {userStats?.weeklyStats?.totalTime
-                          ? formatTime(userStats.weeklyStats.totalTime)
-                          : "0분"}
-                      </p>
-                      <p className={styles.statSubtitle}>
-                        평균{" "}
-                        {userStats?.weeklyStats?.averageTime
-                          ? formatTime(userStats.weeklyStats.averageTime)
-                          : "0분"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={styles.statCard}>
-                    <div className={styles.statIcon}>📊</div>
-                    <div className={styles.statContent}>
-                      <h3 className={styles.statTitle}>총 거리</h3>
-                      <p className={styles.statValue}>
-                        {userStats?.totalDistance
-                          ? formatDistance(userStats.totalDistance)
-                          : "0m"}
-                      </p>
-                      <p className={styles.statSubtitle}>
-                        {userStats?.totalRecords || 0}회 기록
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={styles.statCard}>
-                    <div className={styles.statIcon}>🎯</div>
-                    <div className={styles.statContent}>
-                      <h3 className={styles.statTitle}>개인 최고</h3>
-                      <p className={styles.statValue}>
-                        {userStats?.personalBests?.distance
-                          ? formatDistance(userStats.personalBests.distance)
-                          : "0m"}
-                      </p>
-                      <p className={styles.statSubtitle}>
-                        최고 시간:{" "}
-                        {userStats?.personalBests?.duration
-                          ? formatTime(userStats.personalBests.duration)
-                          : "0분"}
-                      </p>
-                    </div>
-                  </div>
+                {/* 탭 네비게이션 */}
+                <div className={styles.tabNavigation}>
+                  <button
+                    className={`${styles.tabButton} ${
+                      activeTab === "summary" ? styles.active : ""
+                    }`}
+                    onClick={() => setActiveTab("summary")}
+                  >
+                    📊 요약
+                  </button>
+                  <button
+                    className={`${styles.tabButton} ${
+                      activeTab === "stats" ? styles.active : ""
+                    }`}
+                    onClick={() => setActiveTab("stats")}
+                  >
+                    📈 상세 통계
+                  </button>
+                  <button
+                    className={`${styles.tabButton} ${
+                      activeTab === "actions" ? styles.active : ""
+                    }`}
+                    onClick={() => setActiveTab("actions")}
+                  >
+                    ✏️ 기록 관리
+                  </button>
                 </div>
 
-                {/* 성취 통계 */}
-                {achievementStats && (
-                  <div className={styles.achievementStatsSection}>
-                    <h3 className={styles.sectionTitle}>성취 현황</h3>
-                    <div className={styles.achievementStatsGrid}>
-                      <div className={styles.achievementStatCard}>
-                        <div className={styles.achievementStatIcon}>🏆</div>
-                        <div className={styles.achievementStatContent}>
-                          <h4 className={styles.achievementStatTitle}>
-                            달성률
-                          </h4>
-                          <p className={styles.achievementStatValue}>
-                            {achievementStats?.completionRate?.toFixed(1) ||
-                              "0.0"}
-                            %
-                          </p>
-                          <p className={styles.achievementStatSubtitle}>
-                            {achievementStats?.unlockedAchievements || 0}/
-                            {achievementStats?.totalAchievements || 0}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={styles.achievementStatCard}>
-                        <div className={styles.achievementStatIcon}>🥉</div>
-                        <div className={styles.achievementStatContent}>
-                          <h4 className={styles.achievementStatTitle}>
-                            브론즈
-                          </h4>
-                          <p className={styles.achievementStatValue}>
-                            {achievementStats?.levelStats?.bronze || 0}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={styles.achievementStatCard}>
-                        <div className={styles.achievementStatIcon}>🥈</div>
-                        <div className={styles.achievementStatContent}>
-                          <h4 className={styles.achievementStatTitle}>실버</h4>
-                          <p className={styles.achievementStatValue}>
-                            {achievementStats?.levelStats?.silver || 0}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={styles.achievementStatCard}>
-                        <div className={styles.achievementStatIcon}>🥇</div>
-                        <div className={styles.achievementStatContent}>
-                          <h4 className={styles.achievementStatTitle}>골드</h4>
-                          <p className={styles.achievementStatValue}>
-                            {achievementStats?.levelStats?.gold || 0}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 영법별 통계 */}
-                {styleStats && (
-                  <div className={styles.styleStatsSection}>
-                    <h3 className={styles.sectionTitle}>영법별 통계</h3>
-                    <div className={styles.styleStatsGrid}>
-                      {Object.entries(styleStats).map(([style, stats]) => (
-                        <div key={style} className={styles.styleStatCard}>
-                          <h4 className={styles.styleName}>
-                            {getStyleName(style)}
-                          </h4>
-                          <div className={styles.styleStatContent}>
-                            <p className={styles.styleStatValue}>
-                              {stats.count}회
-                            </p>
-                            <p className={styles.styleStatSubtitle}>
-                              총 {formatDistance(stats.totalDistance)} /{" "}
-                              {formatTime(stats.totalTime)}
-                            </p>
-                            <p className={styles.styleStatBest}>
-                              최고: {formatDistance(stats.bestDistance)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 액션 카드들 */}
-                <div className={styles.actionGrid}>
-                  <div className={styles.actionCard}>
-                    <h3 className={styles.actionTitle}>새로운 기록 추가</h3>
-                    <p className={styles.actionDescription}>
-                      오늘의 수영 기록을 입력하고 맞춤형 추천을 받아보세요
-                    </p>
-                    <button
-                      onClick={() => setShowRecordForm(true)}
-                      className={styles.actionButton}
-                    >
-                      기록 입력하기
-                    </button>
-                  </div>
-
-                  {recommend && (
-                    <div className={styles.recommendationCard}>
-                      <h3 className={styles.recommendationTitle}>
-                        오늘의 추천
-                      </h3>
-                      <div className={styles.recommendationContent}>
-                        <div className={styles.recommendationItem}>
-                          <span className={styles.recommendationLabel}>
-                            수영 훈련:
-                          </span>
-                          <span className={styles.recommendationText}>
-                            {recommend.swim_training}
-                          </span>
-                        </div>
-                        <div className={styles.recommendationItem}>
-                          <span className={styles.recommendationLabel}>
-                            지상 운동:
-                          </span>
-                          <span className={styles.recommendationText}>
-                            {recommend.dryland_training}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {/* 탭 컨텐츠 */}
+                {activeTab === "summary" && <SummaryTab />}
+                {activeTab === "stats" && <StatsTab />}
+                {activeTab === "actions" && <ActionsTab />}
               </>
             )}
 

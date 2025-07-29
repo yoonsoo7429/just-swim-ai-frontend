@@ -1,28 +1,28 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getToken, logout } from "../utils/api";
+import { getToken, signout } from "../utils/api";
 
 export const useAuth = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSignedIn, setisSignedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const token = getToken();
-    setIsLoggedIn(!!token);
+    setisSignedIn(!!token);
     setIsLoading(false);
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    setIsLoggedIn(false);
+  const handleSignOut = () => {
+    signout();
+    setisSignedIn(false);
     router.push("/signin");
   };
 
   const checkAuth = () => {
     const token = getToken();
     if (!token) {
-      setIsLoggedIn(false);
+      setisSignedIn(false);
       router.push("/signin");
       return false;
     }
@@ -30,9 +30,9 @@ export const useAuth = () => {
   };
 
   return {
-    isLoggedIn,
+    isSignedIn,
     isLoading,
-    handleLogout,
+    handleSignOut,
     checkAuth,
   };
 };
