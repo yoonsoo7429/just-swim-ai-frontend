@@ -41,6 +41,8 @@ export const getStyleName = (style: string): string => {
     backstroke: "배영",
     breaststroke: "평영",
     butterfly: "접영",
+    kickboard: "킥판",
+    pull: "풀",
   };
   return styleNames[style] || style;
 };

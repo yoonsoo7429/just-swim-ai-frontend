@@ -564,6 +564,42 @@
     font-size: 0.9rem;
   }
 
+  // 상세 기록 폼 모바일
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .segmentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .segmentCard {
+    padding: 1rem;
+  }
+
+  .formSection {
+    padding: 1rem;
+  }
+
+  // 최근 상세 기록 모바일
+  .recentRecordStats {
+    grid-template-columns: 1fr;
+  }
+
+  .recentRecordHeader {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .recentRecordSegmentList {
+    justify-content: center;
+  }
+
   // 요약 탭 모바일
   .summaryHeader {
     flex-direction: column;
@@ -1413,4 +1449,279 @@
   color: #666;
   line-height: 1.6;
   margin-bottom: 1.5rem;
+}
+
+// 상세 기록 입력 폼 스타일
+.formSection {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #667eea;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.addSegmentButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+}
+
+.emptySegments {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  background: white;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+}
+
+.segmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.segmentCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.segmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.segmentTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.removeSegmentButton {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+  }
+}
+
+.segmentGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.summarySection {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.summarySection .sectionTitle {
+  color: white;
+  border-bottom-color: rgba(255, 255, 255, 0.3);
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.summaryLabel {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.summaryValue {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.textarea {
+  padding: 0.875rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  &::placeholder {
+    color: #adb5bd;
+  }
+}
+
+// 최근 상세 기록 스타일
+.recentRecordsSection {
+  margin-top: 2rem;
+  color: white;
+}
+
+.recentRecordsTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.recentRecordsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recentRecordCard {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.recentRecordHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.recentRecordDate {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.recentRecordTime {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.recentRecordStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.recentRecordStat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.recentRecordLabel {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.recentRecordValue {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.recentRecordSegments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recentRecordSegmentList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recentRecordSegment {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
 }

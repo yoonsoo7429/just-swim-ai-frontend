@@ -90,11 +90,18 @@ export const apiDelete = <T>(url: string): Promise<T> => {
 
 // 수영 기록 관련 API 함수들
 export const recordsApi = {
-  // 수영 기록 생성
+  // 수영 기록 생성 (기존)
   create: (data: any) => apiPost<any>(API_URLS.RECORDS, data),
+
+  // 상세 수영 기록 생성 (새로운)
+  createDetailed: (data: any) =>
+    apiPost<any>(`${API_URLS.RECORDS}/detailed`, data),
 
   // 수영 기록 목록 조회
   getAll: () => apiGet<any[]>(API_URLS.RECORDS),
+
+  // 상세 수영 기록 목록 조회
+  getAllDetailed: () => apiGet<any[]>(`${API_URLS.RECORDS}/detailed`),
 
   // 사용자 통계 조회
   getStats: () => apiGet<any>(API_URLS.RECORDS_STATS),

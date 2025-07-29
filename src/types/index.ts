@@ -7,6 +7,17 @@ export interface User {
   updatedAt: string;
 }
 
+// 수영 세그먼트 타입 (각 영법별 기록)
+export interface SwimSegment {
+  style: string;
+  distance: number;
+  duration: number; // 분 단위
+  pace?: number; // 100m당 분 단위
+  heartRate?: number; // BPM
+  laps: number;
+  notes?: string;
+}
+
 // 수영 기록 관련 타입
 export interface Record {
   id: number;
@@ -21,6 +32,28 @@ export interface Record {
   updatedAt: string;
 }
 
+// 새로운 상세 수영 기록 타입
+export interface DetailedRecord {
+  id: number;
+  userId: number;
+  date: string;
+  startTime: string; // 시작 시간 (HH:MM)
+  endTime: string; // 종료 시간 (HH:MM)
+  totalDistance: number;
+  totalDuration: number; // 분 단위
+  poolLength: number; // 수영장 길이 (m)
+  averagePace: number; // 100m당 분 단위
+  averageHeartRate?: number; // BPM
+  totalLaps: number;
+  segments: SwimSegment[];
+  frequencyPerWeek: number;
+  goal: string;
+  location?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CreateRecordRequest {
   date: string;
   distance: number;
@@ -28,6 +61,20 @@ export interface CreateRecordRequest {
   duration: number;
   frequency_per_week: number;
   goal: string;
+}
+
+// 새로운 상세 기록 생성 요청 타입
+export interface CreateDetailedRecordRequest {
+  date: string;
+  startTime: string;
+  endTime: string;
+  poolLength: number;
+  averageHeartRate?: number;
+  segments: SwimSegment[];
+  frequencyPerWeek: number;
+  goal: string;
+  location?: string;
+  notes?: string;
 }
 
 // 목표 관련 타입
