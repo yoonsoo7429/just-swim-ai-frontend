@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { API_URLS } from "@/config/api";
 import styles from "./signup.module.scss";
 
 export default function SignupPage() {
@@ -9,6 +11,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,7 +19,7 @@ export default function SignupPage() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("http://localhost:3001/api/auth/signup", {
+      const res = await fetch(API_URLS.SIGNUP, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, nickname }),
@@ -25,10 +28,12 @@ export default function SignupPage() {
         const data = await res.json();
         throw new Error(data.message || "회원가입 실패");
       }
-      setSuccess("회원가입이 완료되었습니다! 로그인 해주세요.");
-      setEmail("");
-      setPassword("");
-      setNickname("");
+      setSuccess("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
+
+      // 2초 후 로그인 페이지로 리다이렉트
+      setTimeout(() => {
+        router.push("/signin");
+      }, 2000);
     } catch (err: any) {
       setError(err.message);
     } finally {

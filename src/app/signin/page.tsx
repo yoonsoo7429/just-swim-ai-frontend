@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { API_URLS } from "@/config/api";
 import styles from "./signin.module.scss";
 
 export default function SigninPage() {
@@ -8,6 +10,13 @@ export default function SigninPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const router = useRouter();
+
+  const setCookie = (name: string, value: string, days: number = 7) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +24,7 @@ export default function SigninPage() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("http://localhost:3001/api/auth/signin", {
+      const res = await fetch(API_URLS.SIGNIN, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -25,10 +34,17 @@ export default function SigninPage() {
         throw new Error(data.message || "로그인 실패");
       }
       const data = await res.json();
+
+      // localStorage와 쿠키에 토큰 저장
       localStorage.setItem("access_token", data.access_token);
-      setSuccess("로그인 성공! 이제 기록 입력 및 추천을 이용할 수 있습니다.");
-      setEmail("");
-      setPassword("");
+      setCookie("access_token", data.access_token, 7); // 7일간 유효
+
+      setSuccess("로그인 성공! 메인 페이지로 이동합니다.");
+
+      // 1초 후 메인 페이지로 리다이렉트
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
     } catch (err: any) {
       setError(err.message);
     } finally {
