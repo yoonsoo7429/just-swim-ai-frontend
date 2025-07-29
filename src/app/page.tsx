@@ -573,7 +573,7 @@ export default function Home() {
                     </div>
                     <div className={styles.styleStatDetails}>
                       <span className={styles.styleStatDetail}>
-                        {styleStat.segments}세그먼트
+                        {styleStat.segments}구간
                       </span>
                       <span className={styles.styleStatDetail}>
                         {styleStat.averagePace.toFixed(1)}분/100m
@@ -607,7 +607,7 @@ export default function Home() {
                     </div>
                     <div className={styles.styleStatDetails}>
                       <span className={styles.styleStatDetail}>
-                        {styleStat.segments}세그먼트
+                        {styleStat.segments}구간
                       </span>
                       <span className={styles.styleStatDetail}>
                         {styleStat.averagePace.toFixed(1)}분/100m
@@ -901,7 +901,12 @@ export default function Home() {
               <div className={styles.modalOverlay}>
                 <div className={styles.modalContent}>
                   <div className={styles.modalHeader}>
-                    <h3 className={styles.modalTitle}>상세 수영 기록 입력</h3>
+                    <h3 className={styles.modalTitle}>
+                      🏊‍♂️ 상세 수영 기록 입력
+                    </h3>
+                    <p className={styles.modalSubtitle}>
+                      오늘의 수영 훈련을 자세히 기록해보세요
+                    </p>
                     <button
                       onClick={() => setShowRecordForm(false)}
                       className={styles.closeButton}
@@ -913,7 +918,7 @@ export default function Home() {
                   <form onSubmit={handleSubmit} className={styles.form}>
                     {/* 기본 정보 */}
                     <div className={styles.formSection}>
-                      <h4 className={styles.sectionTitle}>기본 정보</h4>
+                      <h4 className={styles.sectionTitle}>📅 기본 정보</h4>
                       <div className={styles.formGrid}>
                         <div className={styles.inputGroup}>
                           <label className={styles.label}>날짜</label>
@@ -1050,22 +1055,29 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* 세그먼트 정보 */}
+                    {/* 영법 구간 정보 */}
                     <div className={styles.formSection}>
                       <div className={styles.sectionHeader}>
-                        <h4 className={styles.sectionTitle}>영법별 세그먼트</h4>
+                        <h4 className={styles.sectionTitle}>🏊‍♀️ 영법별 구간</h4>
                         <button
                           type="button"
                           onClick={addSegment}
                           className={styles.addSegmentButton}
                         >
-                          + 세그먼트 추가
+                          영법 구간 추가
                         </button>
                       </div>
 
                       {detailedForm.segments.length === 0 ? (
                         <div className={styles.emptySegments}>
-                          <p>영법별 세그먼트를 추가해주세요</p>
+                          <div className={styles.emptyState}>
+                            <div className={styles.emptyIcon}>🏊‍♂️</div>
+                            <p>영법별 구간을 추가해주세요</p>
+                            <p className={styles.emptyDescription}>
+                              자유형, 배영, 평영, 접영 등 각 영법별로 구간을
+                              나누어 기록할 수 있습니다
+                            </p>
+                          </div>
                         </div>
                       ) : (
                         <div className={styles.segmentsList}>
@@ -1073,7 +1085,7 @@ export default function Home() {
                             <div key={index} className={styles.segmentCard}>
                               <div className={styles.segmentHeader}>
                                 <h5 className={styles.segmentTitle}>
-                                  세그먼트 {index + 1}
+                                  영법 구간 {index + 1}
                                 </h5>
                                 <button
                                   type="button"
@@ -1231,37 +1243,49 @@ export default function Home() {
                     {/* 요약 정보 */}
                     {detailedForm.segments.length > 0 && (
                       <div className={styles.summarySection}>
-                        <h4 className={styles.sectionTitle}>요약</h4>
+                        <h4 className={styles.sectionTitle}>📊 훈련 요약</h4>
                         <div className={styles.summaryGrid}>
                           <div className={styles.summaryItem}>
-                            <span className={styles.summaryLabel}>
-                              총 거리:
-                            </span>
-                            <span className={styles.summaryValue}>
-                              {totalDistance}m
-                            </span>
+                            <div className={styles.summaryIcon}>📏</div>
+                            <div className={styles.summaryContent}>
+                              <span className={styles.summaryLabel}>
+                                총 거리
+                              </span>
+                              <span className={styles.summaryValue}>
+                                {formatDistance(totalDistance)}
+                              </span>
+                            </div>
                           </div>
                           <div className={styles.summaryItem}>
-                            <span className={styles.summaryLabel}>
-                              총 시간:
-                            </span>
-                            <span className={styles.summaryValue}>
-                              {formatTime(totalDuration)}
-                            </span>
+                            <div className={styles.summaryIcon}>⏱️</div>
+                            <div className={styles.summaryContent}>
+                              <span className={styles.summaryLabel}>
+                                총 시간
+                              </span>
+                              <span className={styles.summaryValue}>
+                                {formatTime(totalDuration)}
+                              </span>
+                            </div>
                           </div>
                           <div className={styles.summaryItem}>
-                            <span className={styles.summaryLabel}>
-                              평균 페이스:
-                            </span>
-                            <span className={styles.summaryValue}>
-                              {averagePace.toFixed(1)}분/100m
-                            </span>
+                            <div className={styles.summaryIcon}>🏃‍♂️</div>
+                            <div className={styles.summaryContent}>
+                              <span className={styles.summaryLabel}>
+                                평균 페이스
+                              </span>
+                              <span className={styles.summaryValue}>
+                                {averagePace.toFixed(1)}분/100m
+                              </span>
+                            </div>
                           </div>
                           <div className={styles.summaryItem}>
-                            <span className={styles.summaryLabel}>총 랩:</span>
-                            <span className={styles.summaryValue}>
-                              {totalLaps}랩
-                            </span>
+                            <div className={styles.summaryIcon}>🔄</div>
+                            <div className={styles.summaryContent}>
+                              <span className={styles.summaryLabel}>총 랩</span>
+                              <span className={styles.summaryValue}>
+                                {totalLaps}랩
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
