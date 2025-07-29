@@ -49,6 +49,31 @@ interface TrainingAnalysis {
   personalBests: any;
 }
 
+interface Achievement {
+  id: number;
+  type: string;
+  level: string;
+  title: string;
+  description: string;
+  icon: string;
+  progress: number;
+  target: number;
+  isUnlocked: boolean;
+  unlockedAt: string | null;
+}
+
+interface AchievementStats {
+  totalAchievements: number;
+  unlockedAchievements: number;
+  completionRate: number;
+  levelStats: {
+    bronze: number;
+    silver: number;
+    gold: number;
+    platinum: number;
+  };
+}
+
 export default function Home() {
   const [form, setForm] = useState({
     date: "",
@@ -65,10 +90,16 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showRecordForm, setShowRecordForm] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [trainingAnalysis, setTrainingAnalysis] =
     useState<TrainingAnalysis | null>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [styleStats, setStyleStats] = useState<StyleStats | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [achievementStats, setAchievementStats] =
+    useState<AchievementStats | null>(null);
+  const [newAchievements, setNewAchievements] = useState<Achievement[]>([]);
+  const [showNewAchievements, setShowNewAchievements] = useState(false);
   const [loadingStats, setLoadingStats] = useState(false);
   const router = useRouter();
 
@@ -97,14 +128,21 @@ export default function Home() {
 
     try {
       setLoadingStats(true);
-      const [statsRes, styleStatsRes] = await Promise.all([
-        fetch(API_URLS.RECORDS_STATS, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(API_URLS.RECORDS_STYLE_STATS, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      const [statsRes, styleStatsRes, achievementsRes, achievementStatsRes] =
+        await Promise.all([
+          fetch(API_URLS.RECORDS_STATS, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(API_URLS.RECORDS_STYLE_STATS, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(API_URLS.ACHIEVEMENTS, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(API_URLS.ACHIEVEMENTS_STATS, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
       if (statsRes.ok) {
         const statsData = await statsRes.json();
@@ -114,6 +152,16 @@ export default function Home() {
       if (styleStatsRes.ok) {
         const styleData = await styleStatsRes.json();
         setStyleStats(styleData);
+      }
+
+      if (achievementsRes.ok) {
+        const achievementsData = await achievementsRes.json();
+        setAchievements(achievementsData);
+      }
+
+      if (achievementStatsRes.ok) {
+        const achievementStatsData = await achievementStatsRes.json();
+        setAchievementStats(achievementStatsData);
       }
     } catch (error) {
       console.error("통계 로딩 실패:", error);
@@ -145,6 +193,7 @@ export default function Home() {
     setSuccess("");
     setRecommend(null);
     setTrainingAnalysis(null);
+    setNewAchievements([]);
 
     try {
       const token =
@@ -174,6 +223,12 @@ export default function Home() {
       if (recordData.analysis) {
         setTrainingAnalysis(recordData.analysis);
         setShowAnalysis(true);
+      }
+
+      // 새로운 성취 확인
+      if (recordData.newAchievements && recordData.newAchievements.length > 0) {
+        setNewAchievements(recordData.newAchievements);
+        setShowNewAchievements(true);
       }
 
       // 통계 새로고침
@@ -233,6 +288,26 @@ export default function Home() {
     return goalNames[goal as keyof typeof goalNames] || goal;
   };
 
+  const getLevelColor = (level: string) => {
+    const colors = {
+      bronze: "#cd7f32",
+      silver: "#c0c0c0",
+      gold: "#ffd700",
+      platinum: "#e5e4e2",
+    };
+    return colors[level as keyof typeof colors] || "#666";
+  };
+
+  const getLevelName = (level: string) => {
+    const levelNames = {
+      bronze: "브론즈",
+      silver: "실버",
+      gold: "골드",
+      platinum: "플래티넘",
+    };
+    return levelNames[level as keyof typeof levelNames] || level;
+  };
+
   return (
     <div className={styles.container}>
       <nav className={styles.navigation}>
@@ -240,9 +315,20 @@ export default function Home() {
           <h1 className={styles.logo}>Just Swim AI</h1>
           <div className={styles.navLinks}>
             {isLoggedIn ? (
-              <button onClick={handleLogout} className={styles.navLink}>
-                Sign Out
-              </button>
+              <>
+                <button
+                  onClick={() => setShowAchievements(true)}
+                  className={styles.navLink}
+                >
+                  성취 🏆
+                </button>
+                <a href="/charts" className={styles.navLink}>
+                  차트 📊
+                </a>
+                <button onClick={handleLogout} className={styles.navLink}>
+                  Sign Out
+                </button>
+              </>
             ) : (
               <>
                 <a href="/signin" className={styles.navLink}>
@@ -360,6 +446,59 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
+
+                {/* 성취 통계 */}
+                {achievementStats && (
+                  <div className={styles.achievementStatsSection}>
+                    <h3 className={styles.sectionTitle}>성취 현황</h3>
+                    <div className={styles.achievementStatsGrid}>
+                      <div className={styles.achievementStatCard}>
+                        <div className={styles.achievementStatIcon}>🏆</div>
+                        <div className={styles.achievementStatContent}>
+                          <h4 className={styles.achievementStatTitle}>
+                            달성률
+                          </h4>
+                          <p className={styles.achievementStatValue}>
+                            {achievementStats.completionRate.toFixed(1)}%
+                          </p>
+                          <p className={styles.achievementStatSubtitle}>
+                            {achievementStats.unlockedAchievements}/
+                            {achievementStats.totalAchievements}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={styles.achievementStatCard}>
+                        <div className={styles.achievementStatIcon}>🥉</div>
+                        <div className={styles.achievementStatContent}>
+                          <h4 className={styles.achievementStatTitle}>
+                            브론즈
+                          </h4>
+                          <p className={styles.achievementStatValue}>
+                            {achievementStats.levelStats.bronze}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={styles.achievementStatCard}>
+                        <div className={styles.achievementStatIcon}>🥈</div>
+                        <div className={styles.achievementStatContent}>
+                          <h4 className={styles.achievementStatTitle}>실버</h4>
+                          <p className={styles.achievementStatValue}>
+                            {achievementStats.levelStats.silver}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={styles.achievementStatCard}>
+                        <div className={styles.achievementStatIcon}>🥇</div>
+                        <div className={styles.achievementStatContent}>
+                          <h4 className={styles.achievementStatTitle}>골드</h4>
+                          <p className={styles.achievementStatValue}>
+                            {achievementStats.levelStats.gold}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* 영법별 통계 */}
                 {styleStats && (
@@ -672,6 +811,141 @@ export default function Home() {
                         className={styles.submitButton}
                       >
                         확인
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 성취 모달 */}
+            {showAchievements && (
+              <div className={styles.modalOverlay}>
+                <div className={styles.modalContent}>
+                  <div className={styles.modalHeader}>
+                    <h3 className={styles.modalTitle}>성취 목록</h3>
+                    <button
+                      onClick={() => setShowAchievements(false)}
+                      className={styles.closeButton}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className={styles.achievementsContent}>
+                    <div className={styles.achievementsGrid}>
+                      {achievements.map((achievement) => (
+                        <div
+                          key={achievement.id}
+                          className={`${styles.achievementCard} ${
+                            achievement.isUnlocked
+                              ? styles.unlocked
+                              : styles.locked
+                          }`}
+                        >
+                          <div className={styles.achievementIcon}>
+                            {achievement.icon}
+                          </div>
+                          <div className={styles.achievementContent}>
+                            <h4 className={styles.achievementTitle}>
+                              {achievement.title}
+                            </h4>
+                            <p className={styles.achievementDescription}>
+                              {achievement.description}
+                            </p>
+                            <div className={styles.achievementProgress}>
+                              <div className={styles.progressBar}>
+                                <div
+                                  className={styles.progressFill}
+                                  style={{
+                                    width: `${Math.min(
+                                      100,
+                                      (achievement.progress /
+                                        achievement.target) *
+                                        100
+                                    )}%`,
+                                    backgroundColor: getLevelColor(
+                                      achievement.level
+                                    ),
+                                  }}
+                                ></div>
+                              </div>
+                              <span className={styles.progressText}>
+                                {achievement.progress}/{achievement.target}
+                              </span>
+                            </div>
+                            <div className={styles.achievementLevel}>
+                              <span
+                                className={styles.levelBadge}
+                                style={{
+                                  backgroundColor: getLevelColor(
+                                    achievement.level
+                                  ),
+                                }}
+                              >
+                                {getLevelName(achievement.level)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 새로운 성취 알림 모달 */}
+            {showNewAchievements && newAchievements.length > 0 && (
+              <div className={styles.modalOverlay}>
+                <div className={styles.modalContent}>
+                  <div className={styles.modalHeader}>
+                    <h3 className={styles.modalTitle}>🎉 새로운 성취 달성!</h3>
+                    <button
+                      onClick={() => setShowNewAchievements(false)}
+                      className={styles.closeButton}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className={styles.newAchievementsContent}>
+                    {newAchievements.map((achievement) => (
+                      <div
+                        key={achievement.id}
+                        className={styles.newAchievementCard}
+                      >
+                        <div className={styles.newAchievementIcon}>
+                          {achievement.icon}
+                        </div>
+                        <div className={styles.newAchievementContent}>
+                          <h4 className={styles.newAchievementTitle}>
+                            {achievement.title}
+                          </h4>
+                          <p className={styles.newAchievementDescription}>
+                            {achievement.description}
+                          </p>
+                          <div className={styles.newAchievementLevel}>
+                            <span
+                              className={styles.levelBadge}
+                              style={{
+                                backgroundColor: getLevelColor(
+                                  achievement.level
+                                ),
+                              }}
+                            >
+                              {getLevelName(achievement.level)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div className={styles.modalActions}>
+                      <button
+                        onClick={() => setShowNewAchievements(false)}
+                        className={styles.submitButton}
+                      >
+                        축하합니다! 🎉
                       </button>
                     </div>
                   </div>
