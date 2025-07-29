@@ -183,7 +183,12 @@ export default function Home() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    if (type === "number") {
+      setForm({ ...form, [name]: Number(value) });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -322,6 +327,9 @@ export default function Home() {
                 >
                   성취 🏆
                 </button>
+                <a href="/goals" className={styles.navLink}>
+                  목표 🎯
+                </a>
                 <a href="/charts" className={styles.navLink}>
                   차트 📊
                 </a>
