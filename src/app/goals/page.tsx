@@ -101,6 +101,20 @@ export default function GoalsPage() {
 
   return (
     <div className={styles.container}>
+      {/* 네비게이션 바 */}
+      <nav className={styles.navigation}>
+        <div className={styles.navContent}>
+          <button
+            onClick={() => router.push("/")}
+            className={styles.backButton}
+          >
+            ← 대시보드로 돌아가기
+          </button>
+          <h1 className={styles.navTitle}>목표 설정</h1>
+          <div className={styles.navSpacer}></div>
+        </div>
+      </nav>
+
       <div className={styles.header}>
         <h1>목표 설정</h1>
         <button

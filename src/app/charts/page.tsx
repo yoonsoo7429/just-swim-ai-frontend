@@ -98,12 +98,19 @@ export default function ChartsPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>수영 통계 차트</h1>
-        <p className={styles.subtitle}>
-          훈련 기록과 성취 현황을 시각적으로 확인해보세요
-        </p>
-      </div>
+      {/* 네비게이션 바 */}
+      <nav className={styles.navigation}>
+        <div className={styles.navContent}>
+          <button
+            onClick={() => router.push("/")}
+            className={styles.backButton}
+          >
+            ← 대시보드로 돌아가기
+          </button>
+          <h1 className={styles.navTitle}>수영 통계 차트</h1>
+          <div className={styles.navSpacer}></div>
+        </div>
+      </nav>
 
       <div className={styles.chartsSection}>
         {/* 훈련 기록 차트 */}
@@ -155,12 +162,6 @@ export default function ChartsPage() {
             />
           </div>
         </div>
-      </div>
-
-      <div className={styles.navigation}>
-        <button onClick={() => router.push("/")} className={styles.backButton}>
-          ← 대시보드로 돌아가기
-        </button>
       </div>
     </div>
   );

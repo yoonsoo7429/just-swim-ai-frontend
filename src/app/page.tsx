@@ -6,6 +6,7 @@ import styles from "./page.module.scss";
 import { useAuth } from "../hooks/useAuth";
 import { useForm } from "../hooks/useForm";
 import { recordsApi, recommendApi, achievementsApi } from "../utils/api";
+import SmartRecommendation from "../components/recommend/SmartRecommendation";
 import {
   UserStats,
   StyleStats,
@@ -15,6 +16,7 @@ import {
   CreateRecordRequest,
   CreateDetailedRecordRequest,
   SwimSegment,
+  DetailedAnalysis,
 } from "../types";
 import {
   formatTime,
@@ -26,7 +28,21 @@ import {
   getLevelName,
 } from "../utils/formatters";
 
-type TabType = "summary" | "stats" | "actions";
+// 안전한 숫자 처리를 위한 유틸리티 함수
+const safeToFixed = (value: any, decimals: number = 1): string => {
+  if (typeof value === "number" && !isNaN(value)) {
+    return value.toFixed(decimals);
+  }
+  if (typeof value === "string") {
+    const num = parseFloat(value);
+    if (!isNaN(num)) {
+      return num.toFixed(decimals);
+    }
+  }
+  return "0.0";
+};
+
+type TabType = "summary" | "stats" | "actions" | "recommend";
 
 export default function Home() {
   const { isSignedIn, handleSignOut } = useAuth();
@@ -63,6 +79,8 @@ export default function Home() {
   const [showNewAchievements, setShowNewAchievements] = useState(false);
   const [loadingStats, setLoadingStats] = useState(false);
   const [detailedRecords, setDetailedRecords] = useState<any[]>([]);
+  const [detailedAnalysis, setDetailedAnalysis] =
+    useState<DetailedAnalysis | null>(null);
   const router = useRouter();
 
   // 상세 기록 분석 함수들
@@ -237,20 +255,23 @@ export default function Home() {
         styleData,
         achievementsData,
         achievementStatsData,
-        detailedRecordsData,
+        recordsData,
+        analysisData,
       ] = await Promise.all([
         recordsApi.getStats(),
         recordsApi.getStyleStats(),
         achievementsApi.getAll(),
         achievementsApi.getStats(),
-        recordsApi.getAllDetailed(),
+        recordsApi.getAll(),
+        recordsApi.getAnalysis(),
       ]);
 
       setUserStats(statsData);
       setStyleStats(styleData);
       setAchievements(achievementsData);
       setAchievementStats(achievementStatsData);
-      setDetailedRecords(detailedRecordsData);
+      setDetailedRecords(recordsData);
+      setDetailedAnalysis(analysisData);
     } catch (error) {
       console.error("통계 로딩 실패:", error);
     } finally {
@@ -274,17 +295,23 @@ export default function Home() {
     setNewAchievements([]);
 
     try {
-      // 상세 기록 데이터 준비
+      // 상세 기록 데이터 준비 - 백엔드 DTO에 맞게 변환
       const recordData = {
-        ...detailedForm,
-        totalDistance,
-        totalDuration,
-        averagePace,
-        totalLaps,
+        date: detailedForm.date,
+        startTime: detailedForm.startTime,
+        endTime: detailedForm.endTime,
+        poolLength: detailedForm.poolLength,
+        averageHeartRate: detailedForm.averageHeartRate,
+        segments: detailedForm.segments,
+        frequency_per_week: detailedForm.frequencyPerWeek, // snake_case로 변환
+        goal: detailedForm.goal,
+        location: detailedForm.location,
+        notes: detailedForm.notes,
+        // 세그먼트가 있으면 기본 필드들은 제외 (백엔드에서 세그먼트로 계산)
       };
 
-      // 새로운 상세 기록 API 사용
-      const savedRecord = await recordsApi.createDetailed(recordData);
+      // 통합된 기록 API 사용
+      const savedRecord = await recordsApi.create(recordData);
       setSuccess("기록이 저장되었습니다!");
       setShowRecordForm(false);
 
@@ -320,7 +347,7 @@ export default function Home() {
   const SummaryTab = () => (
     <div className={styles.tabContent}>
       <div className={styles.summaryHeader}>
-        <h3 className={styles.summaryTitle}>이번 주 요약</h3>
+        <h3 className={styles.summaryTitle}>최근 7일 요약</h3>
         <button
           onClick={() => setShowRecordForm(true)}
           className={styles.quickAddButton}
@@ -333,7 +360,7 @@ export default function Home() {
         <div className={styles.summaryCard}>
           <div className={styles.summaryIcon}>🏊‍♂️</div>
           <div className={styles.summaryContent}>
-            <h4>이번 주 거리</h4>
+            <h4>최근 7일 거리</h4>
             <p className={styles.summaryValue}>
               {userStats?.weeklyStats?.totalDistance
                 ? formatDistance(userStats.weeklyStats.totalDistance)
@@ -348,7 +375,7 @@ export default function Home() {
         <div className={styles.summaryCard}>
           <div className={styles.summaryIcon}>⏱️</div>
           <div className={styles.summaryContent}>
-            <h4>이번 주 시간</h4>
+            <h4>최근 7일 시간</h4>
             <p className={styles.summaryValue}>
               {userStats?.weeklyStats?.totalTime
                 ? formatTime(userStats.weeklyStats.totalTime)
@@ -495,33 +522,93 @@ export default function Home() {
             </div>
           )}
 
-          {/* 상세 기록 통계 */}
-          {detailedRecords.length > 0 && (
+          {/* AI 상세 분석 */}
+          {detailedAnalysis && (
             <div className={styles.statCard}>
-              <h4 className={styles.statCardTitle}>상세 분석</h4>
+              <h4 className={styles.statCardTitle}>🤖 AI 상세 분석</h4>
               <div className={styles.statCardContent}>
                 <div className={styles.statItem}>
-                  <span className={styles.statLabel}>평균 심박수</span>
+                  <span className={styles.statLabel}>전체 개선도</span>
                   <span className={styles.statValue}>
-                    {calculateAverageHeartRate()} BPM
+                    {detailedAnalysis.overallImprovement > 0 ? "+" : ""}
+                    {safeToFixed(detailedAnalysis.overallImprovement, 1)}%
                   </span>
                 </div>
                 <div className={styles.statItem}>
-                  <span className={styles.statLabel}>평균 수영장 길이</span>
+                  <span className={styles.statLabel}>복합 훈련 비율</span>
                   <span className={styles.statValue}>
-                    {calculateAveragePoolLength()}m
+                    {safeToFixed(detailedAnalysis.complexTrainingRatio, 1)}%
                   </span>
                 </div>
                 <div className={styles.statItem}>
                   <span className={styles.statLabel}>평균 세션 시간</span>
                   <span className={styles.statValue}>
-                    {formatTime(calculateAverageSessionDuration())}
+                    {formatTime(detailedAnalysis.averageSessionDuration)}
                   </span>
                 </div>
                 <div className={styles.statItem}>
-                  <span className={styles.statLabel}>복합 영법 비율</span>
+                  <span className={styles.statLabel}>훈련 강도 트렌드</span>
                   <span className={styles.statValue}>
-                    {calculateComplexTrainingRatio()}%
+                    {detailedAnalysis.intensityAnalysis.intensityTrend ===
+                    "increasing"
+                      ? "📈 증가"
+                      : detailedAnalysis.intensityAnalysis.intensityTrend ===
+                        "decreasing"
+                      ? "📉 감소"
+                      : "➡️ 안정"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 훈련 강도 분석 */}
+          {detailedAnalysis && (
+            <div className={styles.statCard}>
+              <h4 className={styles.statCardTitle}>💓 훈련 강도 분석</h4>
+              <div className={styles.statCardContent}>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>
+                    저강도 (130 BPM 미만)
+                  </span>
+                  <span className={styles.statValue}>
+                    {safeToFixed(
+                      detailedAnalysis.intensityAnalysis.lowIntensity,
+                      1
+                    )}
+                    %
+                  </span>
+                </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>중강도 (130-160 BPM)</span>
+                  <span className={styles.statValue}>
+                    {safeToFixed(
+                      detailedAnalysis.intensityAnalysis.mediumIntensity,
+                      1
+                    )}
+                    %
+                  </span>
+                </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>
+                    고강도 (160 BPM 이상)
+                  </span>
+                  <span className={styles.statValue}>
+                    {safeToFixed(
+                      detailedAnalysis.intensityAnalysis.highIntensity,
+                      1
+                    )}
+                    %
+                  </span>
+                </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>평균 심박수</span>
+                  <span className={styles.statValue}>
+                    {safeToFixed(
+                      detailedAnalysis.intensityAnalysis.averageHeartRate,
+                      0
+                    )}{" "}
+                    BPM
                   </span>
                 </div>
               </div>
@@ -556,68 +643,51 @@ export default function Home() {
             </div>
           )}
 
-          {/* 영법별 상세 분석 */}
-          {detailedRecords.length > 0 && (
+          {/* AI 영법별 분석 */}
+          {detailedAnalysis && detailedAnalysis.styleAnalysis.length > 0 && (
             <div className={styles.statCard}>
-              <h4 className={styles.statCardTitle}>영법별 상세 분석</h4>
+              <h4 className={styles.statCardTitle}>🏊‍♀️ AI 영법별 분석</h4>
               <div className={styles.statCardContent}>
-                {getDetailedStyleStats().map((styleStat) => (
-                  <div key={styleStat.style} className={styles.styleStatItem}>
+                {detailedAnalysis.styleAnalysis.map((styleAnalysis) => (
+                  <div
+                    key={styleAnalysis.style}
+                    className={styles.styleStatItem}
+                  >
                     <div className={styles.styleStatHeader}>
                       <span className={styles.styleName}>
-                        {getStyleName(styleStat.style)}
+                        {getStyleName(styleAnalysis.style)}
                       </span>
                       <span className={styles.styleDistance}>
-                        {formatDistance(styleStat.totalDistance)}
+                        {formatDistance(styleAnalysis.totalDistance)}
                       </span>
                     </div>
                     <div className={styles.styleStatDetails}>
                       <span className={styles.styleStatDetail}>
-                        {styleStat.segments}구간
+                        {styleAnalysis.totalSessions}회
                       </span>
                       <span className={styles.styleStatDetail}>
-                        {styleStat.averagePace.toFixed(1)}분/100m
+                        {formatTime(styleAnalysis.averagePace)}/100m
                       </span>
-                      {styleStat.averageHeartRate && (
+                      {styleAnalysis.averageHeartRate && (
                         <span className={styles.styleStatDetail}>
-                          {styleStat.averageHeartRate} BPM
+                          {safeToFixed(styleAnalysis.averageHeartRate, 0)} BPM
                         </span>
                       )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 영법별 상세 분석 */}
-          {detailedRecords.length > 0 && (
-            <div className={styles.statCard}>
-              <h4 className={styles.statCardTitle}>영법별 상세 분석</h4>
-              <div className={styles.statCardContent}>
-                {getDetailedStyleStats().map((styleStat) => (
-                  <div key={styleStat.style} className={styles.styleStatItem}>
-                    <div className={styles.styleStatHeader}>
-                      <span className={styles.styleName}>
-                        {getStyleName(styleStat.style)}
-                      </span>
-                      <span className={styles.styleDistance}>
-                        {formatDistance(styleStat.totalDistance)}
-                      </span>
-                    </div>
-                    <div className={styles.styleStatDetails}>
-                      <span className={styles.styleStatDetail}>
-                        {styleStat.segments}구간
-                      </span>
-                      <span className={styles.styleStatDetail}>
-                        {styleStat.averagePace.toFixed(1)}분/100m
-                      </span>
-                      {styleStat.averageHeartRate && (
-                        <span className={styles.styleStatDetail}>
-                          {styleStat.averageHeartRate} BPM
+                    {/* 개선도 표시 */}
+                    {(styleAnalysis.improvement.pace > 0 ||
+                      styleAnalysis.improvement.distance > 0) && (
+                      <div className={styles.improvementIndicator}>
+                        <span className={styles.improvementText}>
+                          📈 페이스{" "}
+                          {styleAnalysis.improvement.pace > 0 ? "+" : ""}
+                          {safeToFixed(styleAnalysis.improvement.pace, 1)}% |
+                          거리{" "}
+                          {styleAnalysis.improvement.distance > 0 ? "+" : ""}
+                          {safeToFixed(styleAnalysis.improvement.distance, 1)}%
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -745,7 +815,7 @@ export default function Home() {
                       평균 페이스:
                     </span>
                     <span className={styles.recentRecordValue}>
-                      {record.averagePace.toFixed(1)}분/100m
+                      {safeToFixed(record.averagePace, 1)}분/100m
                     </span>
                   </div>
                 </div>
@@ -887,12 +957,21 @@ export default function Home() {
                   >
                     ✏️ 기록 관리
                   </button>
+                  <button
+                    className={`${styles.tabButton} ${
+                      activeTab === "recommend" ? styles.active : ""
+                    }`}
+                    onClick={() => setActiveTab("recommend")}
+                  >
+                    🤖 AI 추천
+                  </button>
                 </div>
 
                 {/* 탭 컨텐츠 */}
                 {activeTab === "summary" && <SummaryTab />}
                 {activeTab === "stats" && <StatsTab />}
                 {activeTab === "actions" && <ActionsTab />}
+                {activeTab === "recommend" && <SmartRecommendation />}
               </>
             )}
 
@@ -1274,7 +1353,7 @@ export default function Home() {
                                 평균 페이스
                               </span>
                               <span className={styles.summaryValue}>
-                                {averagePace.toFixed(1)}분/100m
+                                {safeToFixed(averagePace, 1)}분/100m
                               </span>
                             </div>
                           </div>
@@ -1394,7 +1473,9 @@ export default function Home() {
                                   .distanceImprovement > 0
                                   ? "+"
                                   : ""}
-                                {trainingAnalysis.improvement.distanceImprovement.toFixed(
+                                {safeToFixed(
+                                  trainingAnalysis.improvement
+                                    .distanceImprovement,
                                   1
                                 )}
                                 %
@@ -1416,7 +1497,8 @@ export default function Home() {
                                 0
                                   ? "+"
                                   : ""}
-                                {trainingAnalysis.improvement.timeImprovement.toFixed(
+                                {safeToFixed(
+                                  trainingAnalysis.improvement.timeImprovement,
                                   1
                                 )}
                                 %
@@ -1438,7 +1520,8 @@ export default function Home() {
                                 0
                                   ? "+"
                                   : ""}
-                                {trainingAnalysis.improvement.speedImprovement.toFixed(
+                                {safeToFixed(
+                                  trainingAnalysis.improvement.speedImprovement,
                                   1
                                 )}
                                 %

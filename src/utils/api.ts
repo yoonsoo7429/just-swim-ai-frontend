@@ -90,18 +90,14 @@ export const apiDelete = <T>(url: string): Promise<T> => {
 
 // 수영 기록 관련 API 함수들
 export const recordsApi = {
-  // 수영 기록 생성 (기존)
+  // 수영 기록 생성 (통합)
   create: (data: any) => apiPost<any>(API_URLS.RECORDS, data),
-
-  // 상세 수영 기록 생성 (새로운)
-  createDetailed: (data: any) =>
-    apiPost<any>(`${API_URLS.RECORDS}/detailed`, data),
 
   // 수영 기록 목록 조회
   getAll: () => apiGet<any[]>(API_URLS.RECORDS),
 
-  // 상세 수영 기록 목록 조회
-  getAllDetailed: () => apiGet<any[]>(`${API_URLS.RECORDS}/detailed`),
+  // 상세 분석 데이터 조회
+  getAnalysis: () => apiGet<any>(`${API_URLS.RECORDS}/analysis`),
 
   // 사용자 통계 조회
   getStats: () => apiGet<any>(API_URLS.RECORDS_STATS),
@@ -163,4 +159,10 @@ export const recommendApi = {
 
   // 사용자별 추천 목록 조회
   getByUserId: () => apiGet<any[]>(API_URLS.RECOMMEND),
+
+  // 사용자 프로필 분석 조회
+  getUserProfile: () => apiGet<any>(`${API_URLS.RECOMMEND}/profile`),
+
+  // 추천 통계 조회
+  getStats: () => apiGet<any>(`${API_URLS.RECOMMEND}/stats`),
 };

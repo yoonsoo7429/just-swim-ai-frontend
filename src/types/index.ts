@@ -245,3 +245,35 @@ export interface NavItem {
   icon: string;
   requiresAuth: boolean;
 }
+
+// 상세 분석 관련 타입들
+export interface StyleAnalysis {
+  style: string;
+  totalDistance: number;
+  totalDuration: number;
+  averagePace: number;
+  totalSessions: number;
+  averageHeartRate?: number;
+  improvement: {
+    pace: number;
+    distance: number;
+  };
+}
+
+export interface TrainingIntensityAnalysis {
+  lowIntensity: number;
+  mediumIntensity: number;
+  highIntensity: number;
+  averageHeartRate: number;
+  intensityTrend: "increasing" | "decreasing" | "stable";
+}
+
+export interface DetailedAnalysis {
+  styleAnalysis: StyleAnalysis[];
+  intensityAnalysis: TrainingIntensityAnalysis;
+  complexTrainingRatio: number;
+  averageSessionDuration: number;
+  totalSessions: number;
+  totalDistance: number;
+  overallImprovement: number;
+}
