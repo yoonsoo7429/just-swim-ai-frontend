@@ -5,6 +5,9 @@ export interface User {
   nickname?: string;
   createdAt: string;
   updatedAt: string;
+  records?: Record[];
+  achievements?: Achievement[];
+  goals?: Goal[];
 }
 
 // 수영 세그먼트 타입 (각 영법별 기록)
@@ -177,6 +180,8 @@ export interface GoalStats {
 export interface AchievementStats {
   totalAchievements: number;
   unlockedAchievements: number;
+  completedCount: number;
+  totalCount: number;
   completionRate: number;
   levelStats: {
     bronze: number;

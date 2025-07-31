@@ -2,6 +2,7 @@ import { API_URLS } from "../config/api";
 
 // 쿠키에서 토큰 읽기
 export const getCookie = (name: string): string | null => {
+  if (typeof document === "undefined") return null;
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
@@ -10,14 +11,17 @@ export const getCookie = (name: string): string | null => {
 
 // 토큰 가져오기 (localStorage 또는 쿠키에서)
 export const getToken = (): string | null => {
+  if (typeof window === "undefined") return null;
   return localStorage.getItem("access_token") || getCookie("access_token");
 };
 
 // 로그아웃 처리
 export const signout = (): void => {
-  localStorage.removeItem("access_token");
-  document.cookie =
-    "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("access_token");
+    document.cookie =
+      "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  }
 };
 
 // API 요청 헤더 생성
@@ -29,6 +33,14 @@ export const createAuthHeaders = (): HeadersInit => {
   };
 };
 
+// API 에러 클래스
+export class ApiError extends Error {
+  constructor(message: string, public status: number, public code?: string) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 // 기본 API 요청 함수
 export const apiRequest = async <T>(
   url: string,
@@ -36,22 +48,47 @@ export const apiRequest = async <T>(
 ): Promise<T> => {
   const headers = createAuthHeaders();
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...headers,
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...headers,
+        ...options.headers,
+      },
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `HTTP error! status: ${response.status}`
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      let errorCode: string | undefined;
+
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+        errorCode = errorData.code;
+      } catch {
+        // JSON 파싱 실패 시 기본 메시지 사용
+      }
+
+      throw new ApiError(errorMessage, response.status, errorCode);
+    }
+
+    // 빈 응답 처리
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return response.json();
+    }
+
+    return {} as T;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    console.error(`API request failed for ${url}:`, error);
+    throw new ApiError(
+      error instanceof Error ? error.message : "네트워크 오류가 발생했습니다.",
+      0
     );
   }
-
-  return response.json();
 };
 
 // GET 요청
@@ -165,4 +202,39 @@ export const recommendApi = {
 
   // 추천 통계 조회
   getStats: () => apiGet<any>(`${API_URLS.RECOMMEND}/stats`),
+};
+
+// 웨어러블 기기 관련 API 함수들
+export const wearableApi = {
+  // 지원하는 웨어러블 기기 목록 조회
+  getProviders: () => apiGet<any>(API_URLS.WEARABLE_PROVIDERS),
+
+  // 웨어러블 기기 연결
+  connect: (data: any) => apiPost<any>(API_URLS.WEARABLE_CONNECT, data),
+
+  // 웨어러블 기기 연결 해제
+  disconnect: (provider: string) =>
+    apiDelete<any>(`${API_URLS.WEARABLE_DISCONNECT}/${provider}`),
+
+  // 사용자의 웨어러블 기기 연결 목록 조회
+  getConnections: () => apiGet<any[]>(API_URLS.WEARABLE_CONNECTIONS),
+
+  // 웨어러블 데이터 동기화
+  sync: (data: any) => apiPost<any>(API_URLS.WEARABLE_SYNC, data),
+
+  // 웨어러블 통계 조회
+  getStats: (provider: string) =>
+    apiGet<any>(`${API_URLS.WEARABLE_STATS}/${provider}`),
+};
+
+// 사용자 관련 API 함수들
+export const userApi = {
+  // 사용자 정보 조회
+  getProfile: () => apiGet<any>(API_URLS.USER_PROFILE),
+
+  // 사용자 정보 수정
+  updateProfile: (data: any) => apiPut<any>(API_URLS.USER_PROFILE, data),
+
+  // 사용자 통계 조회
+  getStats: () => apiGet<any>(API_URLS.USER_STATS),
 };

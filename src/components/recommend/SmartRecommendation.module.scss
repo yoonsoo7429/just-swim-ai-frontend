@@ -2,32 +2,161 @@
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   color: white;
 }
 
 .title {
-  text-align: center;
-  font-size: 2.5rem;
-  margin-bottom: 2rem;
+  font-size: 2rem;
   font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  color: white;
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
-.loading,
+// 섹션 네비게이션
+.sectionNavigation {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.sectionButton {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e9ecef;
+  background: white;
+  color: #666;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #667eea;
+    color: #667eea;
+  }
+
+  &.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+  }
+}
+
+// 분석 섹션
+.analysisSection {
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+}
+
+.analysisGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.analysisCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+
+  h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 1rem 0;
+  }
+}
+
+.analysisValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+  margin: 0 0 0.5rem 0;
+}
+
+.analysisDescription {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.styleAnalysis {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.styleItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.styleName {
+  font-weight: 600;
+  color: #333;
+}
+
+.styleStats {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.intensityAnalysis {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.intensityItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.noAnalysis {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+
+  p {
+    margin: 0.5rem 0;
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
 .error {
   text-align: center;
-  font-size: 1.2rem;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.error {
-  color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.1);
+  padding: 3rem;
+  color: #dc2626;
+  font-size: 1.1rem;
 }
 
 // 프로필 섹션

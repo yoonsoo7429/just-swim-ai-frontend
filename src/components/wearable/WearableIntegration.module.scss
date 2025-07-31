@@ -1,0 +1,304 @@
+.wearableIntegration {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  h2 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .error {
+    background-color: #fee;
+    color: #c33;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid #fcc;
+  }
+
+  .success {
+    background-color: #efe;
+    color: #3c3;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid #cfc;
+  }
+
+  .providers {
+    margin-bottom: 3rem;
+
+    h3 {
+      font-size: 1.5rem;
+      color: #444;
+      margin-bottom: 1.5rem;
+    }
+
+    .providerGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+    }
+
+    .providerCard {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e0e0e0;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      .providerHeader {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+
+        .providerIcon {
+          font-size: 2rem;
+        }
+
+        h4 {
+          margin: 0;
+          font-size: 1.25rem;
+          color: #333;
+          flex: 1;
+        }
+
+        .status {
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.875rem;
+          font-weight: 500;
+
+          &.connected {
+            background-color: #d4edda;
+            color: #155724;
+          }
+
+          &.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+          }
+        }
+      }
+
+      .description {
+        color: #666;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+      }
+
+      .features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+
+        .feature {
+          background-color: #f8f9fa;
+          color: #495057;
+          padding: 0.25rem 0.75rem;
+          border-radius: 15px;
+          font-size: 0.875rem;
+          border: 1px solid #e9ecef;
+        }
+      }
+
+      .connectButton {
+        width: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+
+      .connectedActions {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+
+        .syncButton {
+          flex: 1;
+          background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+          color: white;
+          border: none;
+          padding: 0.75rem 1rem;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(79, 172, 254, 0.3);
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+
+        .disconnectButton {
+          flex: 1;
+          background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+          color: white;
+          border: none;
+          padding: 0.75rem 1rem;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+      }
+
+      .stats {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+
+        h5 {
+          margin: 0 0 1rem 0;
+          color: #495057;
+          font-size: 1rem;
+        }
+
+        .statsGrid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+
+          .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+
+            .statLabel {
+              font-size: 0.875rem;
+              color: #6c757d;
+              margin-bottom: 0.25rem;
+            }
+
+            .statValue {
+              font-size: 1.125rem;
+              font-weight: 600;
+              color: #495057;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-top: 2rem;
+
+    h3 {
+      margin: 0 0 1rem 0;
+      font-size: 1.25rem;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.5rem;
+
+      li {
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+      }
+    }
+  }
+}
+
+// 반응형 디자인
+@media (max-width: 768px) {
+  .wearableIntegration {
+    padding: 1rem;
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    .providers {
+      .providerGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .providerCard {
+        padding: 1rem;
+
+        .providerHeader {
+          flex-direction: column;
+          text-align: center;
+          gap: 0.5rem;
+
+          .providerIcon {
+            font-size: 1.5rem;
+          }
+
+          h4 {
+            font-size: 1.125rem;
+          }
+        }
+
+        .connectedActions {
+          flex-direction: column;
+        }
+
+        .stats {
+          .statsGrid {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+          }
+        }
+      }
+    }
+
+    .info {
+      padding: 1.5rem;
+    }
+  }
+}

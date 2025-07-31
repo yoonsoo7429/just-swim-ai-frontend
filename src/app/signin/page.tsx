@@ -1,7 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { API_URLS } from "@/config/api";
+import { useAuth } from "../../hooks/useAuth";
+import { API_URLS } from "../../config/api";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import styles from "./signin.module.scss";
 
 export default function SigninPage() {
@@ -10,7 +12,14 @@ export default function SigninPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const { isSignedIn, isLoading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && isSignedIn) {
+      router.push("/");
+    }
+  }, [isSignedIn, isLoading, router]);
 
   const setCookie = (name: string, value: string, days: number = 7) => {
     const expires = new Date();
@@ -18,21 +27,45 @@ export default function SigninPage() {
     document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
   };
 
+  const validateForm = () => {
+    if (!email.trim()) {
+      setError("이메일을 입력해주세요.");
+      return false;
+    }
+    if (!password.trim()) {
+      setError("비밀번호를 입력해주세요.");
+      return false;
+    }
+    if (password.length < 6) {
+      setError("비밀번호는 최소 6자 이상이어야 합니다.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess("");
+
     try {
       const res = await fetch(API_URLS.SIGNIN, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || "로그인 실패");
+        throw new Error(data.message || "로그인에 실패했습니다.");
       }
+
       const data = await res.json();
 
       // localStorage와 쿠키에 토큰 저장
@@ -46,11 +79,20 @@ export default function SigninPage() {
         router.push("/");
       }, 1000);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "로그인 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
+
+  // 로딩 중일 때
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <LoadingSpinner size="large" text="인증 상태를 확인하는 중..." />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -66,6 +108,7 @@ export default function SigninPage() {
               required
               className={styles.input}
               placeholder="이메일을 입력하세요"
+              disabled={loading}
             />
           </div>
           <div className={styles.inputGroup}>
@@ -77,6 +120,7 @@ export default function SigninPage() {
               required
               className={styles.input}
               placeholder="비밀번호를 입력하세요"
+              disabled={loading}
             />
           </div>
           <button

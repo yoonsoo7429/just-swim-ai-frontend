@@ -4,6 +4,8 @@ export const API_CONFIG = {
   ENDPOINTS: {
     SIGNIN: "/auth/signin",
     SIGNUP: "/auth/signup",
+    USER_PROFILE: "/users/profile",
+    USER_STATS: "/users/stats",
     RECORDS: "/records",
     RECOMMEND: "/recommend",
     RECORDS_STATS: "/records/stats",
@@ -16,16 +18,24 @@ export const API_CONFIG = {
     ACHIEVEMENTS_CHECK: "/achievements/check",
     GOALS: "/goals",
     GOALS_STATS: "/goals/stats",
+    WEARABLE: "/wearable",
+    WEARABLE_CONNECT: "/wearable/connect",
+    WEARABLE_DISCONNECT: "/wearable/disconnect",
+    WEARABLE_CONNECTIONS: "/wearable/connections",
+    WEARABLE_SYNC: "/wearable/sync",
+    WEARABLE_STATS: "/wearable/stats",
+    WEARABLE_PROVIDERS: "/wearable/providers",
   },
 };
 
-export const getApiUrl = (endpoint: string): string => {
-  return `${API_CONFIG.BASE_URL}${endpoint}`;
-};
+export const getApiUrl = (endpoint: string): string =>
+  `${API_CONFIG.BASE_URL}${endpoint}`;
 
 export const API_URLS = {
   SIGNIN: getApiUrl(API_CONFIG.ENDPOINTS.SIGNIN),
   SIGNUP: getApiUrl(API_CONFIG.ENDPOINTS.SIGNUP),
+  USER_PROFILE: getApiUrl(API_CONFIG.ENDPOINTS.USER_PROFILE),
+  USER_STATS: getApiUrl(API_CONFIG.ENDPOINTS.USER_STATS),
   RECORDS: getApiUrl(API_CONFIG.ENDPOINTS.RECORDS),
   RECOMMEND: getApiUrl(API_CONFIG.ENDPOINTS.RECOMMEND),
   RECORDS_STATS: getApiUrl(API_CONFIG.ENDPOINTS.RECORDS_STATS),
@@ -40,4 +50,11 @@ export const API_URLS = {
   ACHIEVEMENTS_CHECK: getApiUrl(API_CONFIG.ENDPOINTS.ACHIEVEMENTS_CHECK),
   GOALS: getApiUrl(API_CONFIG.ENDPOINTS.GOALS),
   GOALS_STATS: getApiUrl(API_CONFIG.ENDPOINTS.GOALS_STATS),
+  WEARABLE: getApiUrl(API_CONFIG.ENDPOINTS.WEARABLE),
+  WEARABLE_CONNECT: getApiUrl(API_CONFIG.ENDPOINTS.WEARABLE_CONNECT),
+  WEARABLE_DISCONNECT: getApiUrl(API_CONFIG.ENDPOINTS.WEARABLE_DISCONNECT),
+  WEARABLE_CONNECTIONS: getApiUrl(API_CONFIG.ENDPOINTS.WEARABLE_CONNECTIONS),
+  WEARABLE_SYNC: getApiUrl(API_CONFIG.ENDPOINTS.WEARABLE_SYNC),
+  WEARABLE_STATS: getApiUrl(API_CONFIG.ENDPOINTS.WEARABLE_STATS),
+  WEARABLE_PROVIDERS: getApiUrl(API_CONFIG.ENDPOINTS.WEARABLE_PROVIDERS),
 };
